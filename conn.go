@@ -34,21 +34,25 @@ func (c *conn) close() {
 	c.rwc.Close()
 }
 
-func (c *conn) readData() error {
+func (c *conn) readData(q *Queue) error {
 	lines, err := c.tp.ReadDotLines()
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
 
+	m := c.mail[len(c.mail)-1]
 	for i := 0; i < len(lines); i++ {
 		fmt.Printf("[%s] recv[%s]\n", c.id, lines[i])
+		m.Data = append(m.Data, lines[i])
 	}
+
+	//TODO: save sync
+	q.In <- m
 
 	c.lastMethod = "DOT"
 	c.isData = false
-	m := c.mail[len(c.mail)-1]
-	copy(m.Data, lines)
+
 	return nil
 }
 
@@ -84,7 +88,7 @@ func (c *conn) readRequest() error {
 	return nil
 }
 
-func (c *conn) serve() {
+func (c *conn) serve(q *Queue) {
 	c.remoteAddr = c.rwc.RemoteAddr().String()
 	c.isData = false
 	c.id = createId()
@@ -103,7 +107,7 @@ func (c *conn) serve() {
 		if c.isData == false {
 			err = c.readRequest()
 		} else {
-			err = c.readData()
+			err = c.readData(q)
 		}
 		if err != nil {
 			fmt.Println(err)

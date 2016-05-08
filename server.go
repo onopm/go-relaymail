@@ -46,6 +46,10 @@ func (srv *Server) ListenAndServe() error {
 func (srv *Server) Serve(l net.Listener) error {
 	defer l.Close()
 	var tempDelay time.Duration // how long to sleep on accept failure
+
+	q := newQueue()
+	q.serv()
+
 	for {
 		rw, e := l.Accept()
 		if e != nil {
@@ -66,7 +70,7 @@ func (srv *Server) Serve(l net.Listener) error {
 		}
 		tempDelay = 0
 		c := srv.newConn(rw)
-		go c.serve()
+		go c.serve(q)
 	}
 }
 
