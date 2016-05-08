@@ -27,6 +27,7 @@ type conn struct {
 	isData     bool
 	//mu         sync.Mutex
 	//hijackedv bool
+	mail []*InMail
 }
 
 func (c *conn) close() {
@@ -46,6 +47,8 @@ func (c *conn) readData() error {
 
 	c.lastMethod = "DOT"
 	c.isData = false
+	m := c.mail[len(c.mail)-1]
+	copy(m.Data, lines)
 	return nil
 }
 
@@ -65,6 +68,13 @@ func (c *conn) readRequest() error {
 	}
 
 	switch c.lastMethod {
+	case "MAIL":
+		m := NewInMail()
+		m.EnvelopeFrom = line
+		c.mail = append(c.mail, m)
+	case "RCPT":
+		m := c.mail[len(c.mail)-1]
+		m.EnvelopeTo = append(m.EnvelopeTo, line)
 	case "DATA":
 		c.isData = true
 	default:
@@ -89,18 +99,15 @@ func (c *conn) serve() {
 	c.tp = textproto.NewReader(bufio.NewReader(c.rwc))
 
 	for {
+		var err error
 		if c.isData == false {
-			err := c.readRequest()
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
+			err = c.readRequest()
 		} else {
-			err := c.readData()
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
+			err = c.readData()
+		}
+		if err != nil {
+			fmt.Println(err)
+			return
 		}
 
 		switch c.lastMethod {
