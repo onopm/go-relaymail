@@ -3,15 +3,19 @@ package relaymail
 import (
 	"bufio"
 	"fmt"
+	"math/rand"
 	"net"
 	"net/textproto"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type conn struct {
 	server *Server  //set from Server
 	rwc    net.Conn //set from Server
 
+	id         string
 	remoteAddr string
 	//tlsState   *tls.ConnectionState
 	//werr error
@@ -35,7 +39,10 @@ func (c *conn) readData() error {
 		fmt.Println(err)
 		return err
 	}
-	fmt.Printf("recv DATA[%v]\n", lines)
+
+	for i := 0; i < len(lines); i++ {
+		fmt.Printf("[%s] recv[%s]\n", c.id, lines[i])
+	}
 
 	c.lastMethod = "DOT"
 	c.isData = false
@@ -48,7 +55,7 @@ func (c *conn) readRequest() error {
 		fmt.Println(err)
 		return err
 	}
-	fmt.Printf("recv[%s]\n", line)
+	fmt.Printf("[%s] recv[%s]\n", c.id, line)
 
 	s1 := strings.Index(line, " ")
 	if s1 < 0 {
@@ -70,8 +77,10 @@ func (c *conn) readRequest() error {
 func (c *conn) serve() {
 	c.remoteAddr = c.rwc.RemoteAddr().String()
 	c.isData = false
-	fmt.Printf("connection from %v\n", c.remoteAddr)
+	c.id = createId()
+	fmt.Printf("[%s] connection from %v\n", c.id, c.remoteAddr)
 	defer func() {
+		fmt.Printf("[%s] close connection\n", c.id)
 		c.close()
 	}()
 
@@ -114,4 +123,27 @@ func (c *conn) serve() {
 			fmt.Fprintf(c.rwc, "500 unknown\r\n")
 		}
 	}
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+const (
+	layoutMilli = "20060102T150405.000"
+	layoutMicro = "20060102T150405.000000"
+	layoutNano  = "20060102T150405.000000000"
+)
+
+func createId() string {
+	//ZZZ  46655
+	//100   1296
+	var x = rand.Intn(45360) + 1296
+	strconv.FormatInt(int64(x), 36)
+
+	//TODO:
+	t := time.Now()
+	id := t.Format(layoutMicro) + strings.ToUpper(strconv.FormatInt(int64(x), 36))
+
+	return id
 }
