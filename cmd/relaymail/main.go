@@ -24,7 +24,7 @@ func main() {
 	//TODO: ex) use "-listen :10025"
 	flag.StringVar(&host, "host", "", "listen IP Addr.")
 	flag.IntVar(&port, "port", 25, "listen Port.")
-	flag.StringVar(&listen, "listen", ":25", "listen IP Addr and Port.")
+	flag.StringVar(&listen, "listen", "", "listen IP Addr and Port.")
 	flag.Parse()
 
 	if len(listen) < 1 {
@@ -35,12 +35,17 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
+	fmt.Printf("listen[%s] start\n", listen)
 
 	conf := relaymail.Config{
 		Listen:  listen,
 		NextMTA: flag.Args()[0],
 	}
 
-	relaymail.ListenAndServe(conf)
+	err := relaymail.ListenAndServe(conf)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
 }

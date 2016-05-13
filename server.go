@@ -44,8 +44,6 @@ func (srv *Server) ListenAndServe(conf Config) error {
 		return err
 	}
 
-	fmt.Println("listen: " + addr)
-
 	return srv.Serve(tcpKeepAliveListener{ln.(*net.TCPListener)})
 }
 
