@@ -37,13 +37,13 @@ func (c *conn) close() {
 func (c *conn) readData(q *Queue) error {
 	lines, err := c.tp.ReadDotLines()
 	if err != nil {
-		fmt.Println(err)
+		warnf("%s", err)
 		return err
 	}
 
 	m := c.mail[len(c.mail)-1]
 	for i := 0; i < len(lines); i++ {
-		fmt.Printf("[%s] recv[%s]\n", c.id, lines[i])
+		infof("[%s] recv[%s]", c.id, lines[i])
 		m.Data = append(m.Data, lines[i])
 	}
 
@@ -59,10 +59,10 @@ func (c *conn) readData(q *Queue) error {
 func (c *conn) readRequest() error {
 	line, err := c.tp.ReadLine()
 	if err != nil {
-		fmt.Println(err)
+		warnf("%s", err)
 		return err
 	}
-	fmt.Printf("[%s] recv[%s]\n", c.id, line)
+	infof("[%s] recv[%s]", c.id, line)
 
 	s1 := strings.Index(line, " ")
 	if s1 < 0 {
@@ -92,9 +92,9 @@ func (c *conn) serve(q *Queue) {
 	c.remoteAddr = c.rwc.RemoteAddr().String()
 	c.isData = false
 	c.id = createId()
-	fmt.Printf("[%s] connection from %v\n", c.id, c.remoteAddr)
+	infof("[%s] connection from %v", c.id, c.remoteAddr)
 	defer func() {
-		fmt.Printf("[%s] close connection\n", c.id)
+		infof("[%s] close connection", c.id)
 		c.close()
 	}()
 

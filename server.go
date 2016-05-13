@@ -1,7 +1,6 @@
 package relaymail
 
 import (
-	"fmt"
 	"net"
 	"time"
 )
@@ -67,7 +66,7 @@ func (srv *Server) Serve(l net.Listener) error {
 				if max := 1 * time.Second; tempDelay > max {
 					tempDelay = max
 				}
-				fmt.Printf("smtp: Accept error: %v; retrying in %v", e, tempDelay)
+				warnf("smtp: Accept error: %v; retrying in %v", e, tempDelay)
 				time.Sleep(tempDelay)
 				continue
 			}

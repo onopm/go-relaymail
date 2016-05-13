@@ -23,18 +23,18 @@ func newQueue() *Queue {
 }
 
 func (q *Queue) serv() {
-	fmt.Println("queue start")
+	infof("queue start")
 
 	go func() {
 	loop:
 		for {
 			select {
 			case m := <-q.In:
-				fmt.Printf("enqueue [%s]\n", m.EnvelopeFrom)
+				infof("enqueue [%s]", m.EnvelopeFrom)
 				//TODO: goroutine or connection keep
 				q.send(m)
 			case <-q.Stop:
-				fmt.Println("queue stop")
+				infof("queue stop")
 				break loop
 			}
 		}
@@ -59,11 +59,11 @@ var date_layout = "Mon,  2 Jan 2006 15:04:05 +0900 (JST)"
 
 func (q *Queue) send(m *InMail) {
 
-	fmt.Println("send start")
+	infof("send start")
 
 	c, err := smtp.Dial(q.NextMTA)
 	if err != nil {
-		fmt.Println(err)
+		warnf("%s", err)
 		return
 	}
 	defer c.Close()
@@ -80,7 +80,7 @@ func (q *Queue) send(m *InMail) {
 	}
 	wc, err := c.Data()
 	if err != nil {
-		fmt.Println(err)
+		warnf("%s", err)
 		return
 	}
 	defer wc.Close()
@@ -91,6 +91,6 @@ func (q *Queue) send(m *InMail) {
 		buf.WriteString(m.Data[i] + "\r\n")
 	}
 	if _, err = buf.WriteTo(wc); err != nil {
-		fmt.Println(err)
+		warnf("%s", err)
 	}
 }
