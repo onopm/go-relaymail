@@ -1,0 +1,8 @@
+hash: ca5651c5a48c2c39ca724e96c9af4139d77b7233f7efc2091126250a6386d370
+updated: 2016-05-14T01:49:18.993399783+09:00
+imports:
+- name: github.com/labstack/gommon
+  version: b5f03e345acd2096591b6f738cb8d2b9b3231c50
+  subpackages:
+  - color
+devImports: []

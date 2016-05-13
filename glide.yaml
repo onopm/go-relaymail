@@ -1,0 +1,5 @@
+package: github.com/onopm/go-relaymail
+import:
+- package: github.com/labstack/gommon
+  subpackages:
+  - color
