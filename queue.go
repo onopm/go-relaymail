@@ -32,6 +32,7 @@ func (q *Queue) serv() {
 			case m := <-q.In:
 				infof("enqueue [%s]", m.EnvelopeFrom)
 				//TODO: goroutine or connection keep
+				m.AddAutoHeader()
 				q.send(m)
 			case <-q.Stop:
 				infof("queue stop")
@@ -54,8 +55,6 @@ func (q *Queue) saveJson(m *InMail) {
 
 	//TODO: save file ?
 }
-
-var date_layout = "Mon,  2 Jan 2006 15:04:05 +0900 (JST)"
 
 func (q *Queue) send(m *InMail) {
 
@@ -86,9 +85,12 @@ func (q *Queue) send(m *InMail) {
 	defer wc.Close()
 
 	//TODO:
-	buf := bytes.NewBufferString(m.Data[0] + "\r\n")
-	for i := 1; i < len(m.Data); i++ {
-		buf.WriteString(m.Data[i] + "\r\n")
+	buf := bytes.NewBufferString(m.DataHeader[0] + "\r\n")
+	for i := 1; i < len(m.DataHeader); i++ {
+		buf.WriteString(m.DataHeader[i] + "\r\n")
+	}
+	for i := 0; i < len(m.DataBody); i++ {
+		buf.WriteString(m.DataBody[i] + "\r\n")
 	}
 	if _, err = buf.WriteTo(wc); err != nil {
 		warnf("%s", err)

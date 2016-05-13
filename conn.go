@@ -42,9 +42,17 @@ func (c *conn) readData(q *Queue) error {
 	}
 
 	m := c.mail[len(c.mail)-1]
+	headerPart := true
 	for i := 0; i < len(lines); i++ {
 		infof("[%s] recv[%s]", c.id, lines[i])
-		m.Data = append(m.Data, lines[i])
+		if headerPart == true {
+			m.DataHeader = append(m.DataHeader, lines[i])
+		} else {
+			m.DataBody = append(m.DataBody, lines[i])
+		}
+		if len(lines[i]) < 1 {
+			headerPart = false
+		}
 	}
 
 	//TODO: save sync
