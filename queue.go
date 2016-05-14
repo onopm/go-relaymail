@@ -33,7 +33,10 @@ func (q *Queue) serv() {
 				infof("enqueue [%s]", m.EnvelopeFrom)
 				//TODO: goroutine or connection keep
 				m.AddAutoHeader()
-				q.send(m)
+				err := q.send(m)
+				if err != nil {
+					warnf("send fail: %s", err)
+				}
 			case <-q.Stop:
 				infof("queue stop")
 				break loop
@@ -56,31 +59,43 @@ func (q *Queue) saveJson(m *InMail) {
 	//TODO: save file ?
 }
 
-func (q *Queue) send(m *InMail) {
+func (q *Queue) send(m *InMail) error {
 
+	if len(q.NextMTA) < 1 {
+		infof("send drop")
+		return nil
+	}
 	infof("send start")
 
 	c, err := smtp.Dial(q.NextMTA)
 	if err != nil {
 		warnf("%s", err)
-		return
+		return fmt.Errorf("%s", err)
 	}
 	defer c.Close()
 
 	sFrom := strings.Index(m.EnvelopeFrom, ":")
 	if sFrom > 0 {
-		c.Mail(m.EnvelopeFrom[sFrom:])
+		err := c.Mail(m.EnvelopeFrom[sFrom:])
+		if err != nil {
+			warnf("%s", err)
+			return fmt.Errorf("%s", err)
+		}
 	}
 	for i := 0; i < len(m.EnvelopeTo); i++ {
 		sTo := strings.Index(m.EnvelopeTo[i], ":")
 		if sTo > 0 {
-			c.Rcpt(m.EnvelopeTo[i][sTo:])
+			err := c.Rcpt(m.EnvelopeTo[i][sTo:])
+			if err != nil {
+				warnf("%s", err)
+				return fmt.Errorf("%s", err)
+			}
 		}
 	}
 	wc, err := c.Data()
 	if err != nil {
 		warnf("%s", err)
-		return
+		return fmt.Errorf("%s", err)
 	}
 	defer wc.Close()
 
@@ -94,5 +109,7 @@ func (q *Queue) send(m *InMail) {
 	}
 	if _, err = buf.WriteTo(wc); err != nil {
 		warnf("%s", err)
+		return fmt.Errorf("%s", err)
 	}
+	return nil
 }
