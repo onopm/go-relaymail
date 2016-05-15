@@ -42,6 +42,7 @@ func (c *conn) readData(q *Queue) error {
 	}
 
 	m := c.mail[len(c.mail)-1]
+	m.MsgId = fmt.Sprintf("%s.%d", c.id, len(c.mail)-1)
 	headerPart := true
 	for i := 0; i < len(lines); i++ {
 		infof("[%s] recv[%s]", c.id, lines[i])
