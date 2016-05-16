@@ -34,7 +34,7 @@ func (m *InMail) AddAutoHeader() {
 				exist_from = true
 			} else if h == "DATE:" {
 				exist_date = true
-			} else if h == "MESSG" {
+			} else if h == "MESSA" {
 				//TODO:
 				if len(m.DataHeader[i]) > 10 {
 					h := strings.ToUpper(m.DataHeader[i][0:11])
@@ -45,24 +45,25 @@ func (m *InMail) AddAutoHeader() {
 			}
 		case len(m.DataHeader[i]) < 1:
 			lastHeader := m.DataHeader[i]
-			m.DataHeader = m.DataHeader[0:(i - 1)]
+			m.DataHeader = m.DataHeader[0:i]
 
 			if exist_from == false {
 				eFrom := strings.SplitN(m.EnvelopeFrom, ":", 2)
+				eFrom[1] = strings.TrimSpace(eFrom[1])
 				addHeader := fmt.Sprintf("From: %s", eFrom[1])
 				m.DataHeader = append(m.DataHeader, addHeader)
-				warnf("add header|%s", addHeader)
+				//debugf("add header|%s", addHeader)
 			}
 			if exist_date == false {
 				now := time.Now()
 				addHeader := fmt.Sprintf("Date: %s", now.Format(date_layout))
 				m.DataHeader = append(m.DataHeader, addHeader)
-				warnf("add header|%s", addHeader)
+				//debugf("add header|%s", addHeader)
 			}
 			if exist_msgid == false {
 				addHeader := fmt.Sprintf("Message-ID: <%s>", m.MsgId)
 				m.DataHeader = append(m.DataHeader, addHeader)
-				warnf("add header|%s", addHeader)
+				//debugf("add header|%s", addHeader)
 			}
 			m.DataHeader = append(m.DataHeader, lastHeader)
 			return

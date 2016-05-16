@@ -18,3 +18,7 @@ func warnf(format string, a ...interface{}) {
 func critf(format string, a ...interface{}) {
 	log.Print(color.Red(fmt.Sprintf(format, a...)))
 }
+
+func debugf(format string, a ...interface{}) {
+	log.Print(color.Magenta(fmt.Sprintf(format, a...)))
+}
