@@ -6,8 +6,9 @@ import (
 )
 
 type Config struct {
-	Listen  string
-	NextMTA string
+	Listen   string
+	NextMTA  string
+	QueueDir string
 }
 
 type Server struct {
@@ -22,7 +23,8 @@ type Server struct {
 	//ErrorLog *log.Logger
 	//nextProtoOnce     sync.Once
 	//nextProtoErr      error
-	NextMTA string
+	NextMTA  string
+	QueueDir string
 }
 
 func (srv *Server) newConn(rwc net.Conn) *conn {
@@ -52,6 +54,7 @@ func (srv *Server) Serve(l net.Listener) error {
 
 	q := newQueue()
 	q.NextMTA = srv.NextMTA
+	q.Dir = srv.QueueDir
 	q.serv()
 
 	for {
@@ -84,8 +87,9 @@ type tcpKeepAliveListener struct {
 
 func ListenAndServe(conf Config) error {
 	server := &Server{
-		Addr:    conf.Listen,
-		NextMTA: conf.NextMTA,
+		Addr:     conf.Listen,
+		NextMTA:  conf.NextMTA,
+		QueueDir: conf.QueueDir,
 	}
 	return server.ListenAndServe(conf)
 }

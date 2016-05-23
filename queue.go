@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/smtp"
+	"os"
 	"strings"
 )
 
@@ -12,6 +13,7 @@ type Queue struct {
 	In      chan *InMail
 	Stop    chan bool
 	NextMTA string
+	Dir     string
 }
 
 func newQueue() *Queue {
@@ -23,7 +25,18 @@ func newQueue() *Queue {
 }
 
 func (q *Queue) serv() {
-	infof("queue start")
+	infof("queue start. dir[%s]", q.Dir)
+	d, err := os.Stat(q.Dir)
+	if err != nil {
+		warnf("queue dir fail[%s]", err)
+		infof("create dir[%s]", q.Dir)
+		os.Mkdir(q.Dir, 0700)
+		d, _ = os.Stat(q.Dir)
+	}
+	if !d.IsDir() {
+		warnf("queue dir not dir")
+		os.Exit(1)
+	}
 
 	go func() {
 	loop:

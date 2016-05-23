@@ -17,14 +17,16 @@ func init() {
 
 func main() {
 	var (
-		host   string
-		port   int
-		listen string
+		host     string
+		port     int
+		listen   string
+		queuedir string
 	)
 	//TODO: ex) use "-listen :10025"
 	flag.StringVar(&host, "host", "", "listen IP Addr.")
 	flag.IntVar(&port, "port", 25, "listen Port.")
 	flag.StringVar(&listen, "listen", "", "listen IP Addr and Port.")
+	flag.StringVar(&queuedir, "queuedir", "./queue", "queue dir.")
 	flag.Parse()
 
 	if len(listen) < 1 {
@@ -38,8 +40,9 @@ func main() {
 	fmt.Printf("listen[%s] start\n", listen)
 
 	conf := relaymail.Config{
-		Listen:  listen,
-		NextMTA: flag.Args()[0],
+		Listen:   listen,
+		NextMTA:  flag.Args()[0],
+		QueueDir: queuedir,
 	}
 
 	err := relaymail.ListenAndServe(conf)
